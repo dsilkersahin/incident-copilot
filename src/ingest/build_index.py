@@ -1,6 +1,8 @@
 from llama_index.core import VectorStoreIndex, StorageContext
 from llama_index.vector_stores.faiss import FaissVectorStore
-from llama_index.embeddings.openai import OpenAIEmbedding
+from src.ingest.sentence_transformer_embeddings import (
+    SentenceTransformerEmbedding,
+)
 from src.ingest.loaders import load_documents
 from src.ingest.chunking import get_splitter
 from src.config import INDEX_PATH
@@ -14,7 +16,17 @@ def build_index(data_dir="data/raw"):
     splitter = get_splitter()
     nodes = splitter.get_nodes_from_documents(docs)
 
-    dimension = 3072
+    # determine embedding model and its embedding dimension
+    embed_model = SentenceTransformerEmbedding()
+    dimension = getattr(embed_model, "dimensions", None)
+    if dimension is None:
+        # fallback: ask underlying model for dimension if available
+        try:
+            dimension = embed_model._model.get_sentence_embedding_dimension()
+        except Exception:
+            # default to a common dimension (mpnet = 768)
+            dimension = 768
+
     faiss_index = faiss.IndexFlatL2(dimension)
     vector_store = FaissVectorStore(faiss_index=faiss_index)
 
@@ -25,7 +37,7 @@ def build_index(data_dir="data/raw"):
     index = VectorStoreIndex(
         nodes,
         storage_context=storage_context,
-        embed_model=OpenAIEmbedding()
+        embed_model=embed_model,
     )
 
     os.makedirs(INDEX_PATH, exist_ok=True)
