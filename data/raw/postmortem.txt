@@ -1,0 +1,15 @@
+# Postmortem: Payment Outage 2023-07-14
+
+## Summary
+Payment service was unavailable for 25 minutes.
+
+## Root Cause
+Memory leak in Service X caused OOM crash.
+
+## Resolution
+Service X was restarted and memory limit increased.
+
+## Action Items
+- Add memory monitoring
+- Improve alerting thresholds
+- Fix memory leak
