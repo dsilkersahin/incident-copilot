@@ -1,4 +1,4 @@
-# Incident Copilot (Scaffold)
+# Incident Copilot
 
 ## Run locally
 ```bash
