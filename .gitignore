@@ -1,4 +1,5 @@
 .venv/
+incident_copilot/
 __pycache__/
 .env
 *.pyc
