@@ -15,7 +15,7 @@ class HFLocalLLM(CustomLLM):
     Llama-Index via `CustomLLM`.
     """
 
-    def __init__(self, model_name: str = "google/flan-t5-small", pipeline_kwargs: dict | None = None, **kwargs: Any):
+    def __init__(self, model_name: str = "google/flan-t5-base", pipeline_kwargs: dict | None = None, **kwargs: Any):
         # Avoid assigning pydantic-managed attrs before super().__init__.
         _model_name = model_name
         _pipeline_kwargs = pipeline_kwargs or {}
@@ -36,8 +36,8 @@ class HFLocalLLM(CustomLLM):
     @property
     def metadata(self) -> LLMMetadata:
         return LLMMetadata(
-            context_window=2048,
-            num_output=512,
+            context_window=512,
+            num_output=256,
             is_chat_model=False,
             model_name=self._model_name,
         )
@@ -73,12 +73,20 @@ class HFLocalLLM(CustomLLM):
                     tokenizer = AutoTokenizer.from_pretrained(self._model_name)
                     model = AutoModelForSeq2SeqLM.from_pretrained(self._model_name)
                     device = 0 if torch.cuda.is_available() else -1
+                    print(f"Using device: {device}")
+                    print(torch.cuda.is_available())
                     if device == 0:
                         model.to("cuda")
 
                     def seq2seq_wrapper(prompt: str, **gen_kwargs):
                         # prepare inputs
-                        inputs = tokenizer(prompt, return_tensors="pt")
+                        inputs = tokenizer(
+                        prompt,
+                        return_tensors="pt",
+                        truncation=True,
+                        max_length=tokenizer.model_max_length,
+)
+
                         if device == 0:
                             inputs = {k: v.to("cuda") for k, v in inputs.items()}
                         # prefer max_new_tokens
@@ -102,6 +110,9 @@ class HFLocalLLM(CustomLLM):
         gen_kwargs.update(kwargs.get("gen_kwargs", {}))
         # prefer max_new_tokens and avoid conflicting max_length
         gen_kwargs.pop("max_length", None)
+        gen_kwargs.setdefault("max_new_tokens", 200)
+        gen_kwargs.setdefault("do_sample", False)
+
 
         outputs = self._pipe(prompt, **gen_kwargs)
         # pipeline returns a list of dicts

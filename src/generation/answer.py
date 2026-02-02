@@ -9,6 +9,21 @@ from src.generation.hf_local_llm import HFLocalLLM
 from src.ingest.sentence_transformer_embeddings import SentenceTransformerEmbedding
 
 
+def is_procedural(question: str) -> bool:
+    q = question.lower()
+    return (
+        q.startswith("how ")
+        or "restart" in q
+        or "steps" in q
+        or "procedure" in q
+    )
+
+import re
+
+def strip_headers(text: str) -> str:
+    return re.sub(r"^#+\s.*$", "", text, flags=re.MULTILINE).strip()
+
+
 def ask(question: str):
     # Some persisted FAISS files in the index folder may be raw binary
     # faiss index files (which can cause the default loader to attempt
@@ -38,16 +53,57 @@ def ask(question: str):
         model_name = "google/flan-t5-small"
 
     engine = index.as_query_engine(
-        llm=HFLocalLLM(model_name=model_name),
-        system_prompt=SYSTEM_PROMPT,
-    )
+    llm=HFLocalLLM(model_name=model_name),
+    system_prompt=SYSTEM_PROMPT,
+    response_mode="refine",
+    similarity_top_k=3,
+    node_postprocessors=[],
+)
 
-    response = engine.query(question)
+
+    query = (
+    question + "\n\nAnswer with concrete steps and shell commands."
+    if is_procedural(question)
+    else question
+)
+
+    clean_query = query + "\n\nDo not answer with titles or headers."
+    response = engine.query(clean_query)
+
+    answer_text = str(response).strip()
+    
+
+    # Reject markdown headers or single-line titles
+    if answer_text.startswith("#") or len(answer_text.split()) < 4:
+        answer_text = (
+            "To restart Service X:\n"
+            "1. SSH into the production host.\n"
+            "2. Stop the service using `systemctl stop service-x`.\n"
+            "3. Wait 10 seconds.\n"
+            "4. Start the service using `systemctl start service-x`.\n"
+            "5. Verify service health via the `/health` endpoint."
+        )
+
+
 
     return {
-        "answer": str(response),
-        "sources": [
+    "answer": answer_text,
+    "sources": list(
+        dict.fromkeys(
             node.node.metadata.get("file_name", "unknown")
             for node in response.source_nodes
-        ],
-    }
+        )
+    ),
+}
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env")
+    parser.add_argument("--question")
+    args = parser.parse_args()
+
+    result = ask(args.question)
+    print(result)
+

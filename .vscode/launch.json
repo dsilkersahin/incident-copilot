@@ -1,0 +1,20 @@
+{
+    "configurations": [
+
+        {
+            "name": "Python Debugger: Python File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+                  "args": [
+        "--env", "dev",
+        "--question", "What is incident copilot?"
+      ],
+            "cwd": "/home/ilkers/projects/incident-copilot",
+            "env": {"PYTHONPATH": "/home/ilkers/projects/incident-copilot"
+                    },
+            "justMyCode": false,
+            "console": "integratedTerminal"
+        }
+                     ]
+}

@@ -1,15 +1,80 @@
-# Postmortem: Payment Outage 2023-07-14
+# Postmortem: Payment Service Outage — 2023-07-14
 
-## Summary
-Payment service was unavailable for 25 minutes.
+## Incident Summary
+On 2023-07-14, the payment authorization service (Service X) experienced a partial outage lasting approximately 25 minutes. During this time, payment requests either failed or experienced severe latency.
+
+The incident was detected automatically via monitoring and resolved by the on-call SRE through a service restart and a temporary configuration change.
+
+---
+
+## Impact
+- Duration: 25 minutes
+- Affected services:
+  - Payment authorization API
+  - Checkout flow
+- User impact:
+  - Increased 5xx errors
+  - High latency (>5 seconds)
+  - Failed payment attempts for a subset of users
+
+---
+
+## Detection
+The incident was detected by automated alerts:
+- Alert: SERVICE_X_HIGH_LATENCY
+- Alert: SERVICE_X_DOWN
+
+Observed signals:
+- Steady increase in memory usage
+- Sudden OOM kill event
+- Spike in error rate and request latency
+
+---
 
 ## Root Cause
-Memory leak in Service X caused OOM crash.
+A memory leak in Service X caused unbounded memory growth under sustained traffic, eventually leading to an out-of-memory (OOM) crash.
+
+Contributing factors:
+- No alerting on abnormal memory growth rate
+- Memory limits configured too high
+- Lack of automated restart or circuit breaker
+
+---
 
 ## Resolution
-Service X was restarted and memory limit increased.
+The on-call engineer performed the following actions:
+1. Restarted Service X to restore availability
+2. Increased the service memory limit temporarily
+3. Monitored the service after restart to ensure stability
+
+Service availability was fully restored after the restart.
+
+---
+
+## What Went Well
+- Alerts triggered without customer reports
+- Runbook steps were clear and effective
+- Service recovery was fast once action was taken
+
+---
+
+## What Went Wrong
+- Memory leak was not detected early
+- No heap dump or profiling data was captured
+- Monitoring focused on absolute memory usage, not growth trends
+
+---
 
 ## Action Items
-- Add memory monitoring
-- Improve alerting thresholds
-- Fix memory leak
+- [ ] Add memory usage and growth-rate alerts
+- [ ] Capture heap dumps on OOM
+- [ ] Fix the memory leak in Service X
+- [ ] Add long-running memory stress tests
+- [ ] Review and adjust production memory limits
+
+---
+
+## Follow-Up
+- Owner: Payments SRE Team
+- Tracking ticket: PAY-1234
+- Status: In progress

@@ -3,6 +3,6 @@ from src.config import CHUNK_SIZE, CHUNK_OVERLAP
 
 def get_splitter():
     return SentenceSplitter(
-        chunk_size=CHUNK_SIZE,
-        chunk_overlap=CHUNK_OVERLAP
+        chunk_size=300,
+        chunk_overlap=50
     )
