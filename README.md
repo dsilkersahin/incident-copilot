@@ -30,6 +30,47 @@ This repository represents a **baseline RAG approach** and is intended for exper
 
 ---
 
+## Model Options
+
+This project defaults to using the HuggingFace model `google/flan-t5-large` for generation in local experiments. Below are quick notes on that model and alternative options you can configure.
+
+- **HuggingFace (local / on-host):**
+  - `google/flan-t5-large`: A strong instruction-tuned encoder-decoder model (good balance of accuracy vs resource use). Works well for instruction-following tasks and summarization.
+  - Lighter options: `google/flan-t5-base`, `google/flan-t5-small` (faster, smaller memory footprint).
+  - Larger options: `google/flan-t5-xl` (higher quality, more memory/compute required).
+  - Other open-source families: `EleutherAI/gpt-j-6B`, `bigscience/bloom`, or community chat models (`meta-llama/Llama-2-7b-chat-hf`) — choose based on license and hardware capability.
+
+- **Using a HuggingFace model in code:** set the model name in your config or invocation, for example in Python:
+
+```python
+model_name = "google/flan-t5-large"
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+# generate on CPU/GPU as available; consider quantization for large models
+```
+
+- **Device / performance tips:**
+  - Use GPU where available (set `device_map` or move tensors to CUDA).
+  - For very large models, consider 8-bit/4-bit quantization (packages like `bitsandbytes`) or model sharding.
+
+- **OpenAI / external hosted models:**
+  - If you prefer hosted APIs, you can use OpenAI models (e.g., `gpt-4o`, `gpt-3.5-turbo`) by switching the generation backend to call the OpenAI API and providing `OPENAI_API_KEY` in your environment.
+  - Example (pseudo-configuration):
+
+```text
+# use_openai=true
+# openai_model=gpt-4o
+# set OPENAI_API_KEY in environment
+```
+
+- **Choosing a model:** balance cost, latency, and accuracy. Local HF models remove API costs but require suitable hardware and storage. Hosted models reduce infra overhead but add latency and cost.
+
+If you want, I can add a small example config file (e.g., `config.example.yml`) showing how to switch between `google/flan-t5-large` and an OpenAI model and wire that into the code paths.
+
+
 
 
 # 1) setup
@@ -115,5 +156,8 @@ docker compose down
 ```
 
 - **Persisted data / volumes:** Check `docker-compose.yml` for mounted volumes (database, indexes, or data directories). Back up `data/processed/` and `indexes/` before destructive operations.
+
+
+ 
 
 
