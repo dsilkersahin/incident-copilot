@@ -57,3 +57,60 @@ curl -X POST http://127.0.0.1:8000/ask \
 python src/generation/answer.py \
   --question "How do I restart Service X?"
 
+## Docker Runbook
+
+Quick commands to build, run, and inspect the project using Docker / Docker Compose.
+
+- **Prereqs:** Docker and Docker Compose (v2) installed locally.
+
+- **Build images:**
+
+```bash
+docker compose build
+```
+
+- **Start services (foreground):**
+
+```bash
+docker compose up
+```
+
+- **Start services (detached):**
+
+```bash
+docker compose up -d
+```
+
+- **View logs (all services):**
+
+```bash
+docker compose logs -f
+```
+
+- **View logs (single service):**
+
+```bash
+docker compose logs -f <service-name>
+```
+
+- **Rebuild and restart (useful after code changes):**
+
+```bash
+docker compose up -d --build
+```
+
+- **Run a shell inside the web container:**
+
+```bash
+docker compose exec <service-name> /bin/bash
+# or
+docker compose exec <service-name> /bin/sh
+```
+
+- **Stop and remove containers:**
+
+```bash
+docker compose down
+```
+
+- **Persisted data / volumes:** Check `docker-compose.yml` for mounted volumes (database, indexes, or data directories). Back up `data/processed/` and `indexes/` before destructive operations.
