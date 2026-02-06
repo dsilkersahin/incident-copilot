@@ -57,7 +57,7 @@ curl -X POST http://127.0.0.1:8000/ask \
 python src/generation/answer.py \
   --question "How do I restart Service X?"
 
-## Docker Runbook
+# 6) Docker Runbook
 
 Quick commands to build, run, and inspect the project using Docker / Docker Compose.
 
