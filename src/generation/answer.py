@@ -50,7 +50,7 @@ def ask(question: str):
     # fall back to a small HF model so the code runs without OpenAI.
     model_name = MODEL_NAME
     if model_name is None or model_name.lower().startswith("gpt-") or model_name.lower().startswith("gpt"):
-        model_name = "google/flan-t5-small"
+        model_name = "google/flan-t5-large"
 
     engine = index.as_query_engine(
     llm=HFLocalLLM(model_name=model_name),
@@ -72,18 +72,6 @@ def ask(question: str):
 
     answer_text = str(response).strip()
     
-
-    # Reject markdown headers or single-line titles
-    if answer_text.startswith("#") or len(answer_text.split()) < 4:
-        answer_text = (
-            "To restart Service X:\n"
-            "1. SSH into the production host.\n"
-            "2. Stop the service using `systemctl stop service-x`.\n"
-            "3. Wait 10 seconds.\n"
-            "4. Start the service using `systemctl start service-x`.\n"
-            "5. Verify service health via the `/health` endpoint."
-        )
-
 
 
     return {

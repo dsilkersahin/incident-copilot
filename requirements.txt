@@ -2,6 +2,14 @@ fastapi
 uvicorn
 python-dotenv
 pydantic
+
 sentence-transformers
 transformers>=4.30.0
 torch>=2.0.0
+
+llama-index
+llama-index-core
+llama-index-vector-stores-faiss
+
+nltk
+faiss-cpu
