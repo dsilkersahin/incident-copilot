@@ -56,6 +56,7 @@ curl -X POST http://127.0.0.1:8000/ask \
 ```bash
 python src/generation/answer.py \
   --question "How do I restart Service X?"
+```
 
 # 6) Docker Runbook
 
@@ -114,3 +115,5 @@ docker compose down
 ```
 
 - **Persisted data / volumes:** Check `docker-compose.yml` for mounted volumes (database, indexes, or data directories). Back up `data/processed/` and `indexes/` before destructive operations.
+
+
